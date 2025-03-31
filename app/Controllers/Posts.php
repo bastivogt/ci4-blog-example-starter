@@ -6,13 +6,21 @@ use CodeIgniter\Exceptions\PageNotFoundException;
 
 use App\Controllers\BaseController;
 use App\Models\PostsModel;
+use App\Entities\Post;
 
 class Posts extends BaseController
 {
+
+    private $model = null;
+
+    function __construct()
+    {
+        $this->model = new PostsModel();
+    }
+
     public function index()
     {
-        $model = new PostsModel();
-        $all_posts = $model
+        $all_posts = $this->model
             //->where("published", 1)
             ->orderBy("id", "desc")
             ->findAll();
@@ -28,18 +36,18 @@ class Posts extends BaseController
 
     public function show(int $id)
     {
-        $model = new PostsModel();
-        $post = $model
-            //->where("published", true)
-            ->find($id);
-        //$post = $posts->findByIdPublished($id);
+        // $post = $this->model
+        //     //->where("published", true)
+        //     ->find($id);
+        // //$post = $posts->findByIdPublished($id);
 
+        $post = $this->findOr404($id);
         if ($post === null) {
             throw new PageNotFoundException("Post does not exists!");
         }
 
         return view("Posts/show",  [
-            "title" => $post["title"],
+            "title" => $post->title,
             "post" => $post
         ]);
     }
@@ -47,26 +55,26 @@ class Posts extends BaseController
 
     public function new()
     {
+        $post = new Post();
+        $post->published = "1";
         return view("Posts/new", [
-            "title" => "New Post"
+            "title" => "New Post",
+            "post" => $post
         ]);
     }
 
     public function create()
     {
+        $post = new Post();
+        $post->title = $this->request->getPost("title");
+        $post->content = $this->request->getPost("content");
+        $post->published = $this->request->getPost("published") !== null ? "1" : "0";
 
-        $model = new PostsModel();
-        $data = [
-            "title" => $this->request->getPost("title"),
-            "content" => $this->request->getPost("content"),
-            "published" => $this->request->getPost("published") !== null ? 1 : 0
-        ];
-
-        $id = $model->insert($data);
+        $id = $this->model->insert($post);
         if ($id === false) {
 
             return redirect()->back()
-                ->with("errors", $model->errors())
+                ->with("errors", $this->model->errors())
                 ->withInput();
         }
         return redirect("Posts::index")->with("message", "Post saved.");
@@ -76,13 +84,10 @@ class Posts extends BaseController
     function edit(int $id)
     {
         $model = new PostsModel();
-        $post = $model->find($id);
-        if ($post === null) {
-            throw new PageNotFoundException("Post not found.");
-        }
+        $post = $this->findOr404($id);
 
         return view("Posts/edit", [
-            "title" => $post["title"],
+            "title" => $post->title,
             "post" => $post
         ]);
     }
@@ -91,16 +96,22 @@ class Posts extends BaseController
     function update(int $id)
     {
         $model = new PostsModel();
-        $data = [
-            "title" => $this->request->getPost("title"),
-            "content" => $this->request->getPost("content"),
-            "published" => $this->request->getPost("published") !== null ? 1 : 0
-        ];
-        //dd($data);
+        $post = $this->findOr404($id);
+        //$post = new Post();
+        $post->title = $this->request->getPost("title");
+        $post->content = $this->request->getPost("content");
+        $post->published = $this->request->getPost("published") !== null ? "1" : "0";
 
-        $success = $model->update($id, $data);
+
+        if (! $post->hasChanged()) {
+            return redirect("Posts::index")->with("message", "Nothing changed.");
+        }
+
+        $success = $model->update($id, $post);
         if ($success === false) {
-            return redirect()->back();
+            return redirect()->back()
+                ->with("errors", $model->errors())
+                ->withInput();
         }
 
         return redirect("Posts::index")->with("message", "Post #$id updated.");
@@ -110,13 +121,10 @@ class Posts extends BaseController
     function deleteConfirm(int $id)
     {
         $model = new PostsModel();
-        $post = $model->find($id);
-        if ($post === null) {
-            throw new PageNotFoundException("Post not found.");
-        }
+        $post = $this->findOr404($id);
 
         return view("Posts/delete_confirm", [
-            "title" => $post["title"],
+            "title" => $post->title,
             "post" => $post
         ]);
     }
@@ -127,5 +135,17 @@ class Posts extends BaseController
 
         $model->delete($id);
         return redirect("Posts::index")->with("message", "Post #$id deleted.");
+    }
+
+
+    // No CRUD -> Helpers
+
+    function findOr404($id)
+    {
+        $post = $this->model->find($id);
+        if ($post === null) {
+            throw new PageNotFoundException("Post not found!");
+        }
+        return $post;
     }
 }

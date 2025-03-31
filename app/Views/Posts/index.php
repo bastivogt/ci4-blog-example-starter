@@ -13,9 +13,9 @@
     <ul>
         <?php foreach ($all_posts as $post): ?>
             <li>
-                <a href="<?= url_to("Posts::show", $post["id"]) ?>"><?= esc($post["title"]) ?></a>
-                <a href="<?= url_to("Posts::edit", $post["id"]) ?>">[EDIT]</a>
-                <a href="<?= url_to("Posts::deleteConfirm", $post["id"]) ?>">[DELETE]</a>
+                <a href="<?= url_to("Posts::show", $post->id) ?>"><?= esc($post->title) ?></a>
+                <a href="<?= url_to("Posts::edit", $post->id) ?>">[EDIT]</a>
+                <a href="<?= url_to("Posts::deleteConfirm", $post->id) ?>">[DELETE]</a>
             </li>
         <?php endforeach ?>
     </ul>

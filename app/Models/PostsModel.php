@@ -9,7 +9,8 @@ class PostsModel extends Model
     protected $table            = 'posts';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
-    protected $returnType       = 'array';
+    //protected $returnType       = 'array';
+    protected $returnType = \App\Entities\Post::class;
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [

@@ -7,9 +7,9 @@
 <?= $this->section("content") ?>
 <h1><?= esc($title) ?></h1>
 <p>
-    Do you really want to delete Post #<?= $post["id"] ?>?
+    Do you really want to delete Post #<?= $post->id ?>?
 </p>
-<form action="<?= url_to("Posts::delete", $post["id"]) ?>" method="post">
+<form action="<?= url_to("Posts::delete", $post->id) ?>" method="post">
     <?= csrf_field() ?>
     <button type="submit">Delete</button>
 </form>

@@ -7,7 +7,7 @@
 <?= $this->section("content") ?>
 <h1><?= esc($title) ?></h1>
 <p>
-    <?= $post["content"] ?>
+    <?= $post->content ?>
 </p>
 <br>
 <div>
